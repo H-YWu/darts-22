@@ -263,7 +263,7 @@ void test_color_and_image()
     spdlog::info("Creating gradient image.");
 
 //    put_your_code_here("Populate an image with a color gradient and save to \"scenes/assignment0/gradient.png\"");
-    gradient.save("../../../scenes/assignment0/gradient.png");
+    gradient.save("scenes/assignment0/gradient.png");
     spdlog::info("Saving image \"gradient.png\" ...");
 
     // Now, we will load an image, modify it, and save it back to disk.
@@ -273,7 +273,7 @@ void test_color_and_image()
     // ``image'' variable
     spdlog::info("Loading image cornellbox.png ...");
 //    put_your_code_here("Load the image \"scenes/assignment0/cornellbox.png\".");
-    image.load("../../../scenes/assignment0/cornellbox.png");
+    image.load("scenes/assignment0/cornellbox.png");
     // Hint: Take a look at Image3f::load
     // Keep in mind filenames are interpreted relative to your current
     // working directory
@@ -292,7 +292,7 @@ void test_color_and_image()
     // Hint: Take a look at Image3f::save
     spdlog::info("Saving image cornell_grayscale.png....");
 //    put_your_code_here("Save the image to \"scenes/assignment0/cornell_grayscale.png\".");
-    image.save("../../../scenes/assignment0/cornell_grayscale.png");
+    image.save("scenes/assignment0/cornell_grayscale.png");
 
     spdlog::info("Done!\n");
 }
