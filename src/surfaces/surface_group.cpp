@@ -37,12 +37,19 @@ bool SurfaceGroup::intersect(const Ray3f &ray_, HitInfo &hit) const
     // This is a linear intersection test that iterates over all primitives
     // within the scene. It's the most naive intersection test and hence very
     // slow if you have many primitives.
+
+    hit.t = ray.maxt;
     for (auto surface : m_surfaces)
     {
-        if (surface->intersect(ray, hit))
+        HitInfo temp_hit;
+        if (surface->intersect(ray, temp_hit))
         {
             hit_anything = true;
-            ray.maxt     = hit.t;
+            if (temp_hit.t < hit.t) // Record the closest hit
+            {
+                hit = temp_hit;
+                ray.maxt = hit.t; // Update ray.maxt to the closest hit distance
+            }
         }
     }
 

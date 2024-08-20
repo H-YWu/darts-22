@@ -36,18 +36,18 @@ int main(int argc, char **argv)
 {
     darts_init();
 
-    // test_manual_camera_image();
-    // test_JSON();
-    // test_camera_class_image();
+    test_manual_camera_image();
+    test_JSON();
+    test_camera_class_image();
 
-    // test_transforms();
-    // test_xformed_camera_image();
+    test_transforms();
+    test_xformed_camera_image();
 
-    // test_ray_sphere_intersection();
-    // test_sphere_image();
+    test_ray_sphere_intersection();
+    test_sphere_image();
 
-    // test_materials();
-    // test_recursive_raytracing();
+    test_materials();
+    test_recursive_raytracing();
 
     return 0;
 }
@@ -81,8 +81,12 @@ void test_manual_camera_image()
             // 3) the z component is -1
             //
             // Make sure to calculate the ray directions to go through the center of each pixel
-            Vec3f ray_origin;
-            Vec3f ray_direction;
+            Vec3f ray_origin = camera_origin;
+            Vec3f ray_direction(
+                image_plane_width * ( static_cast<float>(x + 0.5f)/static_cast<float>(ray_image.width()) - 0.5 ),
+                image_plane_height * ( 0.5 - static_cast<float>(y + 0.5f)/static_cast<float>(ray_image.height()) ),
+                -1.0f
+            );
             auto  ray = Ray3f(ray_origin, ray_direction);
 
             // Generate a visual color for the ray so we can debug our ray directions
@@ -137,7 +141,7 @@ void test_JSON()
     // We can also read these structures back out of the JSON object
     float  f2 = j["my float"];
     string s2 = j["my string"];
-    Color3f c3f2 = j["my color3"];
+    Color3f c3f2 = j["my color"];
     Vec3f v3f2 = j["my vector3"];
     Vec3f n3f2 = j["my normal"];
 
@@ -170,8 +174,8 @@ void function_with_JSON_parameters(const json &j)
 
     // TODO: Replace the below two lines to extract the parameters radius (default=1.f),
     // and center (default={0,0,0}) from the JSON object j
-    float radius = 1.f;
-    Vec3f center = Vec3f(0.f);
+    float radius = j.value<float>("radius", 1.0f);
+    Vec3f center = j.value<Vec3f>("center", Vec3f(0.0f));
     spdlog::info("The radius is: {}", radius);
     spdlog::info("The center is:\n{}", center);
 }
@@ -621,6 +625,11 @@ void test_recursive_raytracing()
 
                 // TODO: Call recursive_color ``num_samples'' times and average the
                 // results. Assign the average color to ``color''
+                float scale = 1.0f/num_samples;
+                for (int i = 0; i < num_samples; i ++) {
+                    color += recursive_color(ray, scene, 1);
+                }
+                color *= scale;
 
                 ray_image(x, y) = color;
                 ++progress;
@@ -649,7 +658,14 @@ Color3f recursive_color(const Ray3f &ray, const SurfaceGroup &scene, int depth)
     // else:
     // 		return white
 
-    return Color3f(0.0f);
+    HitInfo hit;
+    if (scene.intersect(ray, hit)) {
+        Color3f attenuation;
+        Ray3f scattered;
+        if ((depth < max_depth) && (hit.mat->scatter(ray, hit, attenuation, scattered))) {
+            return attenuation * recursive_color(scattered, scene, depth+1);
+        } else return Color3f(0.f);
+    } else return Color3f(1.f);
 
 }
 

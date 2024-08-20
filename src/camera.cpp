@@ -8,27 +8,40 @@
 
 STAT_COUNTER("Integrator/Camera rays traced", num_camera_rays);
 
+
 Camera::Camera(const json &j)
 {
-    m_xform           = j.value("transform", m_xform);
+    if (j.count("transform")) {
+        Mat44f m;
+        json transj = j.value<json>("transform", {{"from", {5.0f, 15.0f, -25.0f}}, {"to", {0.0f, 0.0f, 0.0f}}, {"up", {0.0f, 1.0f, 0.0f}}});
+        from_json(transj, m);
+        m_xform = Transform(m);
+    }
     m_resolution      = j.value("resolution", m_resolution);
     m_focal_distance  = j.value("fdist", m_focal_distance);
     m_aperture_radius = j.value("aperture", m_aperture_radius);
 
-    float vfov = 90.f; // Default vfov value. Override this with the value from json
     // TODO: Assignment 1: read the vertical field-of-view from j ("vfov"),
     // and compute the width and height of the image plane. Remember that
     // the "vfov" parameter is specified in degrees, but C++ math functions
     // expect it in radians. You can use deg2rad() from common.h to convert
     // from one to the other
-    put_your_code_here("Assignment 1: Compute the image plane size.");
-    m_size = Vec2f(2.f, 1.f);
+    float vfov = j.value<float>("vfov", 90.f);
+    float theta = Spherical::deg2rad(vfov);
+    float h = std::tan(theta/2);
+    float viewport_height = 2 * h * m_focal_distance;
+    float viewport_width = viewport_height * (static_cast<float>(m_resolution.x)/static_cast<float>(m_resolution.y));
+    m_size = Vec2f(viewport_width, viewport_height);
 }
 
 Ray3f Camera::generate_ray(const Vec2f &pixel) const
 {
     ++num_camera_rays;
     // TODO: Assignment 1: Implement camera ray generation
-    put_your_code_here("Assignment 1: Insert your camera ray generation code here");
-    return Ray3f(Vec3f(0.f), Vec3f(1.f));
+    Vec3f ray_direction(
+        m_size.x * ( (pixel.x)/static_cast<float>(m_resolution.x) - 0.5 ),
+        m_size.y * ( 0.5 - (pixel.y)/static_cast<float>(m_resolution.y) ),
+        -m_focal_distance
+    );
+    return m_xform.ray(Ray3f(Vec3f(0.f), ray_direction));
 }

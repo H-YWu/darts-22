@@ -42,7 +42,12 @@ bool Metal::scatter(const Ray3f &ray, const HitInfo &hit, Color3f &attenuation, 
     //
     //       This procedure could produce directions below the surface. Handle this by returning false if the scattered
     //       direction and the shading normal point in different directions (i.e. their dot product is negative)
-    return false;
+    
+    attenuation = albedo;
+    Vec3f scatter_direction = normalize(reflect((ray.d), hit.sn)) + roughness * normalize(random_in_unit_sphere());
+    scattered = Ray3f(hit.p, scatter_direction);
+
+    return (dot(scattered.d, hit.sn) > 0);
 }
 
 

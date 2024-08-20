@@ -25,15 +25,32 @@ bool Sphere::intersect(const Ray3f &ray, HitInfo &hit) const
     ++num_sphere_tests;
     // TODO: Assignment 1: Implement ray-sphere intersection
 
-    put_your_code_here("Assignment 1: Insert your ray-sphere intersection code here");
-    return false;
+    Ray3f tray = m_xform.inverse().ray(ray);
+    // Center of sphere?
+    Vec3f center(0.f);
+    Vec3f oc = center - tray.o;
+    float a = length2(tray.d);
+    float h = dot(tray.d, oc);
+    float c = length2(oc) - m_radius * m_radius;
+    float discriminant = h*h - a*c;
+    if (discriminant < 0)
+        return false;
+    float sqrtd = std::sqrt(discriminant);
+    // Find the nearest root that lies in the acceptable range.
+    float root = (h - sqrtd) / a;
+    if (root < tray.mint || tray.maxt < root) {
+        root = (h + sqrtd) / a;
+        if (root < tray.mint || tray.maxt < root)
+            return false;
+    }
 
     // TODO: If the ray misses the sphere, you should return false
     // TODO: If you successfully hit something, you should compute the hit point (p),
     //       hit distance (t), and normal (n) and fill in these values
-    Vec3f p;
-    float t = 0.0f;
-    Vec3f n;
+    float t = root;
+    Vec3f p = tray(t);
+    Vec3f n = m_xform.normal((p - center) / m_radius);
+    p = m_xform.point(p);
 
     // For this assignment you can leave these two values as is
     Vec3f shading_normal = n;

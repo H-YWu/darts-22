@@ -41,7 +41,19 @@ bool Lambertian::scatter(const Ray3f &ray, const HitInfo &hit, Color3f &attenuat
     //       a sphere, not *in* the sphere (the text book gets this wrong)
     //       If you normalize the point, you can force it to be on the sphere always, so
     //       add normalize(random_in_unit_sphere()) to your shading normal
-    return false;
+
+    attenuation = albedo;
+    Vec3f scatter_direction = hit.sn + normalize(random_in_unit_sphere());
+    float eps = 1e-8;
+    if (std::sqrt( length2(scatter_direction) ) < eps) {
+        scatter_direction = hit.sn;
+    }
+    if (dot(scatter_direction, hit.sn) < 0) {
+        scatter_direction = -scatter_direction;  // Flip the direction to be above the hemisphere
+    }
+    scattered = Ray3f(hit.p, scatter_direction);
+
+    return true;
 }
 
 

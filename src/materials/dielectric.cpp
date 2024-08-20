@@ -29,7 +29,29 @@ Dielectric::Dielectric(const json &j) : Material(j)
 bool Dielectric::scatter(const Ray3f &ray, const HitInfo &hit, Color3f &attenuation, Ray3f &scattered) const
 {
     // TODO: Implement dielectric scattering
-    return false;
+
+    attenuation = Color3f(1.f);
+
+    Vec3f unit_direction = normalize(ray.d);
+    float ri, cos_theta;
+    Vec3f n;
+    if (dot(unit_direction, hit.sn) < 0) {
+        ri = 1.f/ior;
+        cos_theta = std::fmin(dot(-unit_direction, hit.sn), 1.0f);
+        n = hit.sn;
+    } else {
+        ri = ior;
+        cos_theta = std::fmin(dot(unit_direction, hit.sn), 1.0f);
+        n = -hit.sn;
+    }
+    Vec3f direction;
+
+    if (!refract(unit_direction, n, ri, direction) ||
+        fresnel_dielectric(cos_theta, 1.f, ior) > randf())
+        direction = reflect(unit_direction, n);
+
+    scattered = Ray3f(hit.p, direction);
+    return true;
 }
 
 
